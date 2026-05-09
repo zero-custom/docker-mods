@@ -1,6 +1,32 @@
 #!/usr/bin/with-contenv bash
 # shellcheck shell=bash
 
+# Configure system package mirror (Alpine/APK or Ubuntu/apt)
+if [[ -n "${PACKAGES_MIRROR}" ]]; then
+    if [[ -f /sbin/apk ]]; then
+        echo "[pkg-install-init] **** Configuring system package mirror: ${PACKAGES_MIRROR} ****"
+        sed -i "s|dl-cdn.alpinelinux.org|${PACKAGES_MIRROR}|g" /etc/apk/repositories
+    elif [[ -f /usr/bin/apt ]]; then
+        echo "[pkg-install-init] **** Configuring system package mirror: ${PACKAGES_MIRROR} ****"
+        shopt -s nullglob
+        sed -i \
+            -e "s|archive.ubuntu.com|${PACKAGES_MIRROR}|g" \
+            -e "s|security.ubuntu.com|${PACKAGES_MIRROR}|g" \
+            -e "s|ports.ubuntu.com|${PACKAGES_MIRROR}|g" \
+            /etc/apt/sources.list \
+            /etc/apt/sources.list.d/* \
+            /etc/apt/sources.d/*
+        shopt -u nullglob
+    fi
+fi
+
+# Configure pip mirror
+if [[ -n "${PIP_MIRROR}" ]]; then
+    echo "[pkg-install-init] **** Configuring pip mirror: ${PIP_MIRROR} ****"
+    mkdir -p /root/.config/pip
+    echo -e "[global]\nindex-url = ${PIP_MIRROR}" > /root/.config/pip/pip.conf
+fi
+
 # Exit if no installable packages are provided
 if [[ -z "${INSTALL_PACKAGES+x}" ]] && [[ -z "${INSTALL_PIP_PACKAGES+x}" ]]; then
     echo "[pkg-install-init] **** No packages to install ****"
