@@ -52,6 +52,8 @@ done
 
 IFS="|" read -r -a SPLIT_INSTALL_PIP_PACKAGES <<< "${INSTALL_PIP_PACKAGES}"
 for PKG in "${SPLIT_INSTALL_PIP_PACKAGES[@]}"; do
-    echo "[pkg-install-init] **** Adding ${PKG} to pip install list ****"
-    echo "${PKG}" >> /mod-pip-packages-to-install.list
+    # Support import_name:pip_name syntax for mismatched pip names
+    PIP_NAME="${PKG#*:}"
+    echo "[pkg-install-init] **** Adding ${PIP_NAME} to pip install list ****"
+    echo "${PIP_NAME}" >> /mod-pip-packages-to-install.list
 done
